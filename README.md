@@ -35,6 +35,11 @@ graph LR
 curl -sSL https://raw.githubusercontent.com/StaticB1/claude-server/main/install.sh | bash
 ```
 
+**Install to a custom directory:**
+```bash
+curl -sSL https://raw.githubusercontent.com/StaticB1/claude-server/main/install.sh | bash -s ~/projects
+```
+
 **Or manually:**
 ```bash
 git clone https://github.com/StaticB1/claude-server

@@ -25,7 +25,8 @@ if [[ ! -f "$(dirname "${BASH_SOURCE[0]}")/claude-server.py" ]]; then
         echo "Error: git not found. Please install git."
         exit 1
     fi
-    CLONE_DIR="$HOME/.claude-server"
+    CLONE_DIR="${1:-$HOME/.claude-server}"
+    CLONE_DIR="${CLONE_DIR%/}/claude-server"
     echo "Cloning repo to $CLONE_DIR..."
     rm -rf "$CLONE_DIR"
     git clone --depth=1 "$REPO" "$CLONE_DIR"
