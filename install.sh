@@ -3,6 +3,8 @@ set -e
 
 INSTALL_DIR="$HOME/.local/bin"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SHELL_RC="$HOME/.bashrc"
+PATH_LINE="export PATH=\"\$HOME/.local/bin:\$PATH\""
 
 echo "Checking prerequisites..."
 
@@ -24,10 +26,9 @@ ln -sf "$SCRIPT_DIR/claude-server" "$INSTALL_DIR/claude-server"
 echo "Installed to $INSTALL_DIR/claude-server"
 
 if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
-    echo ""
-    echo "Note: $INSTALL_DIR is not in your PATH. Add it:"
-    echo "  echo 'export PATH=\"\$HOME/.local/bin:\$PATH\"' >> ~/.bashrc && source ~/.bashrc"
-    echo ""
+    echo "$PATH_LINE" >> "$SHELL_RC"
+    echo "Added $INSTALL_DIR to PATH in $SHELL_RC"
+    export PATH="$INSTALL_DIR:$PATH"
 fi
 
 echo "Done. Try: claude-server start"

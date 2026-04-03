@@ -45,6 +45,7 @@ status() {
 uninstall() {
     stop 2>/dev/null
     rm -f "$HOME/.local/bin/claude-server"
+    sed -i '/export PATH="\$HOME\/.local\/bin:\$PATH"/d' "$HOME/.bashrc"
     echo "uninstalled"
 }
 
