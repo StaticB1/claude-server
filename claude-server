@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# claude-server — portable start/stop wrapper
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PID_FILE="$SCRIPT_DIR/.claude-server.pid"
+LOG_FILE="$SCRIPT_DIR/claude-server.log"
+CMD="python3 $SCRIPT_DIR/claude-server.py --skip-permissions"
+
+_pid() { [[ -f "$PID_FILE" ]] && cat "$PID_FILE"; }
+
+_running() {
+    local pid; pid=$(_pid)
+    [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null
+}
+
+start() {
+    if _running; then
+        echo "already running (pid $(_pid))"
+        return
+    fi
+    nohup $CMD >> "$LOG_FILE" 2>&1 &
+    echo $! > "$PID_FILE"
+    echo "started (pid $!)"
+}
+
+stop() {
+    if ! _running; then
+        echo "not running"
+        rm -f "$PID_FILE"
+        return
+    fi
+    kill "$(_pid)" && rm -f "$PID_FILE"
+    echo "stopped"
+}
+
+status() {
+    if _running; then
+        echo "running (pid $(_pid))"
+    else
+        echo "stopped"
+        rm -f "$PID_FILE"
+    fi
+}
+
+case "${1:-status}" in
+    start)   start   ;;
+    stop)    stop    ;;
+    restart) stop; sleep 1; start ;;
+    status)  status  ;;
+    log)     tail -f "$LOG_FILE" ;;
+    *)       echo "usage: claude-server {start|stop|restart|status|log}" ;;
+esac
