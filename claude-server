@@ -42,11 +42,18 @@ status() {
     fi
 }
 
+uninstall() {
+    stop 2>/dev/null
+    rm -f "$HOME/.local/bin/claude-server"
+    echo "uninstalled"
+}
+
 case "${1:-status}" in
-    start)   start   ;;
-    stop)    stop    ;;
-    restart) stop; sleep 1; start ;;
-    status)  status  ;;
-    log)     tail -f "$LOG_FILE" ;;
-    *)       echo "usage: claude-server {start|stop|restart|status|log}" ;;
+    start)     start     ;;
+    stop)      stop      ;;
+    restart)   stop; sleep 1; start ;;
+    status)    status    ;;
+    log)       tail -f "$LOG_FILE" ;;
+    uninstall) uninstall ;;
+    *)         echo "usage: claude-server {start|stop|restart|status|log|uninstall}" ;;
 esac

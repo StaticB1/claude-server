@@ -45,11 +45,12 @@ cd claude-server
 ## Usage
 
 ```bash
-claude-server start     # start in background
-claude-server stop      # stop
-claude-server restart   # restart
-claude-server status    # check if running
-claude-server log       # tail the log
+claude-server start       # start in background
+claude-server stop        # stop
+claude-server restart     # restart
+claude-server status      # check if running
+claude-server log         # tail the log
+claude-server uninstall   # remove from system
 ```
 
 ### Flags
