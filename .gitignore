@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+.claude-server.pid
+.claude-server.stats
+claude-server.log
