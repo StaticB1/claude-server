@@ -4,6 +4,7 @@
 SCRIPT_DIR="$(cd "$(dirname "$(realpath "${BASH_SOURCE[0]}")")" && pwd)"
 PID_FILE="$SCRIPT_DIR/.claude-server.pid"
 LOG_FILE="$SCRIPT_DIR/claude-server.log"
+STATS_FILE="$SCRIPT_DIR/.claude-server.stats"
 CMD="python3 $SCRIPT_DIR/claude-server.py --skip-permissions"
 
 _pid() { [[ -f "$PID_FILE" ]] && cat "$PID_FILE"; }
@@ -39,12 +40,21 @@ status() {
         local uptime; uptime=$(ps -o etime= -p "$pid" 2>/dev/null | tr -d ' ')
         local port; port=$(ss -tlnp 2>/dev/null | grep "pid=$pid," | grep -oP ':\K[0-9]+' | head -1)
         local mem; mem=$(ps -o rss= -p "$pid" 2>/dev/null | awk '{printf "%.1f MB", $1/1024}')
-        echo "status:  running"
-        echo "pid:     $pid"
-        echo "uptime:  ${uptime:-unknown}"
-        echo "port:    ${port:-unknown}"
-        echo "memory:  ${mem:-unknown}"
-        echo "log:     $LOG_FILE"
+        local requests=0 tokens_in=0 tokens_out=0
+        if [[ -f "$STATS_FILE" ]]; then
+            requests=$(python3 -c "import json; d=json.load(open('$STATS_FILE')); print(d.get('requests',0))" 2>/dev/null)
+            tokens_in=$(python3 -c "import json; d=json.load(open('$STATS_FILE')); print(d.get('tokens_in',0))" 2>/dev/null)
+            tokens_out=$(python3 -c "import json; d=json.load(open('$STATS_FILE')); print(d.get('tokens_out',0))" 2>/dev/null)
+        fi
+        echo "status:   running"
+        echo "pid:      $pid"
+        echo "uptime:   ${uptime:-unknown}"
+        echo "port:     ${port:-unknown}"
+        echo "memory:   ${mem:-unknown}"
+        echo "requests: ${requests:-0}"
+        echo "tokens↑:  ${tokens_in:-0}  (estimated)"
+        echo "tokens↓:  ${tokens_out:-0}  (estimated)"
+        echo "log:      $LOG_FILE"
     else
         echo "status:  stopped"
         rm -f "$PID_FILE"
@@ -53,7 +63,7 @@ status() {
 
 uninstall() {
     stop 2>/dev/null
-    rm -f "$HOME/.local/bin/claude-server"
+    rm -f "$HOME/.local/bin/claude-server" "$STATS_FILE"
     sed -i '/export PATH="\$HOME\/.local\/bin:\$PATH"/d' "$HOME/.bashrc"
     echo "uninstalled"
 }

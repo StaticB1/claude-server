@@ -17,6 +17,7 @@ OpenAI-compatible API:
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
@@ -28,6 +29,27 @@ from urllib.parse import urlparse, parse_qs
 sys.stdout.reconfigure(line_buffering=True)
 
 MODEL_NAME = "claude"
+STATS_FILE = None  # set at startup
+
+
+def _estimate_tokens(text):
+    return max(1, len(text) // 4)
+
+
+def record_usage(prompt, response):
+    if not STATS_FILE:
+        return
+    try:
+        try:
+            stats = json.loads(open(STATS_FILE).read())
+        except Exception:
+            stats = {"requests": 0, "tokens_in": 0, "tokens_out": 0}
+        stats["requests"] += 1
+        stats["tokens_in"] += _estimate_tokens(prompt)
+        stats["tokens_out"] += _estimate_tokens(response)
+        open(STATS_FILE, "w").write(json.dumps(stats))
+    except Exception:
+        pass
 
 
 def ask_claude(prompt, skip_permissions=False):
@@ -42,7 +64,9 @@ def ask_claude(prompt, skip_permissions=False):
             timeout=300,
         )
         if result.returncode == 0:
-            return {"response": result.stdout.strip()}
+            response = result.stdout.strip()
+            record_usage(prompt, response)
+            return {"response": response}
         else:
             return {"error": result.stderr.strip() or "claude exited with error"}
     except FileNotFoundError:
@@ -310,6 +334,8 @@ if __name__ == "__main__":
     args = p.parse_args()
 
     Handler.skip_permissions = args.skip_permissions
+
+    STATS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".claude-server.stats")
 
     print(f"claude-server running on http://{args.host}:{args.port}")
     print(f"  Simple:  curl -s 'http://{args.host}:{args.port}?q=hello'")
