@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # claude-server — portable start/stop wrapper
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$(realpath "${BASH_SOURCE[0]}")")" && pwd)"
 PID_FILE="$SCRIPT_DIR/.claude-server.pid"
 LOG_FILE="$SCRIPT_DIR/claude-server.log"
 CMD="python3 $SCRIPT_DIR/claude-server.py --skip-permissions"
